@@ -1,18 +1,14 @@
 package houseInterface_pkg;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
-import houseInterface_pkg.BoutonsHI;
 
 public class LaFenetre extends JFrame{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -112335072284276712L;
 	// Création des éléments de la fenêtre
 	Panneau Pan = new Panneau();
 	LaFenetre()
@@ -21,7 +17,8 @@ public class LaFenetre extends JFrame{
 		this.setTitle("Interface Maison");
 		this.setSize(1366,700);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
+		Color BackColor = new Color(204,204,204); // (R,G,B)
+		this.setBackground(BackColor);
 		
 		
 		this.setContentPane(Pan);
