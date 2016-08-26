@@ -7,10 +7,12 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.PrintStream;
 
 import javax.swing.JPanel;
 import houseInterface_pkg.BoutonsHI;
-
+import houseInterface_pkg.TelnetComm;
 
 
 public class Panneau extends JPanel implements ActionListener{
@@ -21,22 +23,19 @@ public class Panneau extends JPanel implements ActionListener{
 	// constantes
 	//private static final int XDIM = 100;
 	//private static final int YDIM = 50;
-	private Color couleurFenetre1;
-	private Color couleurFenetre2;
-	private Color couleurFenetre3;
-	private Color couleurFenetre4;
-	private Color couleurFenetre5;
+	private Color[] couleurFenetre = new Color[7];
+
 	private Color BackColor = new Color(204,204,204);
 	private Color ControlColor = new Color(0,0,102);
 	
 	// Création des boutons
 	//BoutonsHI btn0 = new BoutonsHI(15);
-	BoutonsHI btn1 = new BoutonsHI(15);
-	BoutonsHI btn2 = new BoutonsHI(15);
-	BoutonsHI btn3 = new BoutonsHI(15);
-	BoutonsHI btn4 = new BoutonsHI(15);
-	BoutonsHI btn5 = new BoutonsHI(15);
-	BoutonsHI btn6 = new BoutonsHI(15);
+	BoutonsHI btn1 = new BoutonsHI(15,'q','w',1);
+	BoutonsHI btn2 = new BoutonsHI(15,'a','s',2);
+	BoutonsHI btn3 = new BoutonsHI(15,'z','x',3);
+	BoutonsHI btn4 = new BoutonsHI(15,'r','t',4);
+	BoutonsHI btn5 = new BoutonsHI(15,'d','f',5);
+	BoutonsHI btn6 = new BoutonsHI(15,'c','v',6);
 	
 	//Grosseur des lignes
 	BasicStroke lineWitdth_10 = new BasicStroke(10);
@@ -44,7 +43,13 @@ public class Panneau extends JPanel implements ActionListener{
 	//Type de police
 	Font Calibri = new Font("Calibri",Font.CENTER_BASELINE,20);
 	
+	//Gestion des commandes
+	public String command; 
 	
+	TelnetComm communication = new TelnetComm();
+	boolean commValid;
+	public PrintStream out;
+	Thread comm;
 	
 	Panneau()
 	{
@@ -66,21 +71,35 @@ public class Panneau extends JPanel implements ActionListener{
 		btn5.addActionListener(this);
 		btn6.addActionListener(this);
 		//initialisation des variables
-		this.couleurFenetre1 = Color.BLACK;
-		this.couleurFenetre2 = Color.BLACK;
-		this.couleurFenetre3 = Color.BLACK;
-		this.couleurFenetre4 = Color.BLACK;
-		this.couleurFenetre5 = Color.DARK_GRAY;
-		//Paramétrage de la couleur d'arrière-plan
-		
-		
+		this.couleurFenetre[1] = Color.BLACK;
+		this.couleurFenetre[2]= Color.BLACK;
+		this.couleurFenetre[3] = Color.BLACK;
+		this.couleurFenetre[4] = Color.BLACK;
+		this.couleurFenetre[5] = Color.DARK_GRAY;
+
 		//Positionnement des boutons
 		this.repaint();
+		//Paramétrage de la commande initiale 
+		commValid = communication.connectComm();
+		
+		if(commValid)
+		out = new PrintStream(communication.telnet.getOutputStream());
+		comm = new Thread(){
+			public void run(){
+				communication.startComm(out);
+			}
+		};
 	}
 	// destruction des objets
 	public void finalize()
 	{
-		//this.btn0 = null;
+		closeWindows(btn1);
+		closeWindows(btn2);
+		closeWindows(btn3);
+		closeWindows(btn4);
+		closeWindows(btn5);
+		out.println("e");
+		out.flush();
 		this.btn1 = null;
 		this.btn2 = null;
 		this.btn3 = null;
@@ -90,6 +109,8 @@ public class Panneau extends JPanel implements ActionListener{
 		this.lineWitdth_10 = null;
 		this.lineWitdth_5 = null;
 		this.BackColor = null;
+		this.communication = null;
+		
 	}
 
 	protected void paintComponent(Graphics g)
@@ -120,7 +141,7 @@ public class Panneau extends JPanel implements ActionListener{
 		g2.drawLine(position-fenetreXDIM/2,hauteur/3+fenetreYDIM/2+fenetreYDIM/3 , position-fenetreXDIM/2+fenetreXDIM, hauteur/3+fenetreYDIM/2+fenetreYDIM/3);
 		g2.drawLine(position-fenetreXDIM/2,hauteur/3+fenetreYDIM/2+2*fenetreYDIM/3 , position-fenetreXDIM/2+fenetreXDIM, hauteur/3+fenetreYDIM/2+2*fenetreYDIM/3);
 		g2.drawLine(position,hauteur/3+fenetreYDIM/2 , position, hauteur/3+fenetreYDIM+fenetreYDIM/2);
-		g2.setColor(couleurFenetre1);
+		g2.setColor(couleurFenetre[1]);
 		g2.drawRect(position-fenetreXDIM/2,hauteur/3+fenetreYDIM/2,fenetreXDIM,fenetreYDIM);
 		btn1.setBounds(position-XDIM/2, 13*hauteur/15, XDIM, YDIM);
 		btn1.setSize(XDIM, YDIM);
@@ -129,7 +150,7 @@ public class Panneau extends JPanel implements ActionListener{
 		g2.drawLine(2*position,hauteur/3+fenetreYDIM/2+fenetreYDIM/3 , 2*position+fenetreXDIM, hauteur/3+fenetreYDIM/2+fenetreYDIM/3);
 		g2.drawLine(2*position,hauteur/3+fenetreYDIM/2+2*fenetreYDIM/3 , 2*position+fenetreXDIM, hauteur/3+fenetreYDIM/2+2*fenetreYDIM/3);
 		g2.drawLine(2*position+fenetreXDIM/2,hauteur/3+fenetreYDIM/2 ,2*position+fenetreXDIM/2, hauteur/3+fenetreYDIM+fenetreYDIM/2);
-		g2.setColor(couleurFenetre2);
+		g2.setColor(couleurFenetre[2]);
 		g2.drawRect(2*position,hauteur/3+fenetreYDIM/2,fenetreXDIM,fenetreYDIM);
 		btn2.setBounds(2*position+fenetreXDIM/2-XDIM/2, 13*hauteur/15, XDIM, YDIM);
 		btn2.setSize(XDIM, YDIM);
@@ -138,7 +159,7 @@ public class Panneau extends JPanel implements ActionListener{
 		g2.drawLine(3*position,hauteur/3+fenetreYDIM/2+fenetreYDIM/3 , 3*position+fenetreXDIM, hauteur/3+fenetreYDIM/2+fenetreYDIM/3);
 		g2.drawLine(3*position,hauteur/3+fenetreYDIM/2+2*fenetreYDIM/3 , 3*position+fenetreXDIM, hauteur/3+fenetreYDIM/2+2*fenetreYDIM/3);
 		g2.drawLine(3*position+fenetreXDIM/2,hauteur/3+fenetreYDIM/2 ,3*position+fenetreXDIM/2, hauteur/3+fenetreYDIM+fenetreYDIM/2);
-		g2.setColor(couleurFenetre3);
+		g2.setColor(couleurFenetre[3]);
 		g2.drawRect(3*position,hauteur/3+fenetreYDIM/2,fenetreXDIM,fenetreYDIM);
 		btn3.setBounds(3*position+fenetreXDIM/2-XDIM/2, 13*hauteur/15, XDIM, YDIM);
 		btn3.setSize(XDIM, YDIM);
@@ -147,14 +168,14 @@ public class Panneau extends JPanel implements ActionListener{
 		g2.drawLine(4*position,hauteur/3+fenetreYDIM/2+fenetreYDIM/3 , 4*position+fenetreXDIM, hauteur/3+fenetreYDIM/2+fenetreYDIM/3);
 		g2.drawLine(4*position,hauteur/3+fenetreYDIM/2+2*fenetreYDIM/3 , 4*position+fenetreXDIM, hauteur/3+fenetreYDIM/2+2*fenetreYDIM/3);
 		g2.drawLine(4*position+fenetreXDIM/2,hauteur/3+fenetreYDIM/2 ,4*position+fenetreXDIM/2, hauteur/3+fenetreYDIM+fenetreYDIM/2);
-		g2.setColor(couleurFenetre4);
+		g2.setColor(couleurFenetre[4]);
 		g2.drawRect(4*position,hauteur/3+fenetreYDIM/2,fenetreXDIM,fenetreYDIM);
 		btn4.setBounds(4*position+fenetreXDIM/2-XDIM/2, 13*hauteur/15, XDIM, YDIM);
 		btn4.setSize(XDIM, YDIM);
 		
 		// Création de la ligne des lumières du toit
 		g2.setStroke(lineWitdth_10);
-		g2.setColor(couleurFenetre5);
+		g2.setColor(couleurFenetre[5]);
 		g2.drawLine(largeur/20, 10*hauteur/30, 17*largeur/20, 10*hauteur/30);
 		btn5.setBounds(largeur/2-XDIM,13*hauteur/32 , XDIM, YDIM);
 		btn5.setSize(XDIM, YDIM);
@@ -198,7 +219,6 @@ public class Panneau extends JPanel implements ActionListener{
 	if (source==btn2)
 	{
 		btn2.isActivated=!btn2.isActivated;
-		
 	}
 	if (source==btn3)
 	{
@@ -215,30 +235,39 @@ public class Panneau extends JPanel implements ActionListener{
 		btn5.isActivated=!btn5.isActivated;
 
 	}
-	if (btn1.isActivated)
-		this.couleurFenetre1 = Color.GREEN;
-	else
-		this.couleurFenetre1 = Color.BLACK;
-	
-	if (btn2.isActivated)
-		this.couleurFenetre2 = Color.GREEN;
-	else
-		this.couleurFenetre2 = Color.BLACK;
-	
-	if (btn3.isActivated)
-		this.couleurFenetre3 = Color.GREEN;
-	else
-		this.couleurFenetre3 = Color.BLACK;
-	
-	if (btn4.isActivated)
-		this.couleurFenetre4 = Color.GREEN;
-	else
-		this.couleurFenetre4 = Color.BLACK;
-	
-	if (btn5.isActivated)
-		this.couleurFenetre5 = Color.GREEN;
-	else
-		this.couleurFenetre5 = Color.DARK_GRAY;
+	processWindow(btn1);
+	processWindow(btn2);
+	processWindow(btn3);
+	processWindow(btn4);
+	processWindow(btn5);
 	this.repaint();
+	}
+	private void processWindow(BoutonsHI bouton)
+	{
+		if (bouton.isActivated){
+			this.couleurFenetre[bouton.index] = Color.GREEN;
+			if(commValid)
+			{
+				out.println(bouton.whenActivated);
+				out.flush();
+			}
+		}
+		else{
+			this.couleurFenetre[bouton.index] = Color.BLACK;
+			if(commValid)
+			{
+				out.println(bouton.whenDesactivated);
+				out.flush();
+			}
+		}
+	}
+	private void closeWindows(BoutonsHI bouton)
+	{
+			this.couleurFenetre[bouton.index] = Color.BLACK;
+			if(commValid)
+			{
+				out.println(bouton.whenDesactivated);
+				out.flush();
+			}
 	}
 }

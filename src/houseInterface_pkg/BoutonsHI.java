@@ -19,6 +19,9 @@ public class BoutonsHI extends JButton implements MouseListener{
 	private int FontSize;
 	private String Name;
 	public boolean isActivated;
+	public char whenActivated;
+	public char whenDesactivated;
+	public int index;
 	
 	
 	//Définition des couleurs de boutons
@@ -27,8 +30,11 @@ public class BoutonsHI extends JButton implements MouseListener{
 	Font Arial;
 	
 	
-	BoutonsHI(int fontSize)
+	BoutonsHI(int fontSize, char WhenActivated, char WhenDesactivated,int Index)
 	{
+		this.whenActivated = WhenActivated;
+		this.whenDesactivated = WhenDesactivated;
+		this.index = Index;
 		this.isActivated=false;
 		this.Name = "ACTIVER";	
 		this.FontSize = fontSize;

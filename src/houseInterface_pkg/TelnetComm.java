@@ -1,9 +1,16 @@
 package houseInterface_pkg;
 
+import java.awt.BorderLayout;
 import java.io.IOException;
+import java.io.PrintStream;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+
 import org.apache.commons.net.telnet.TelnetClient;
 
 import examples.util.IOUtil;
+	
 
 	/***
 	 * This is an example of a trivial use of the TelnetClient class.
@@ -20,28 +27,46 @@ import examples.util.IOUtil;
 	// This class requires the IOUtil support class!
 	public final class TelnetComm
 	{
-
-	    public static final void main(String[] args)
+		public TelnetClient telnet;
+		JFrame connection;
+        JLabel label;
+		
+	    public boolean connectComm()
 	    {
-	        TelnetClient telnet;
-
 	        telnet = new TelnetClient();
-
+	        connection = new JFrame();
+	        label = new JLabel(); 
 	        try
-	        {
+	        {	
+	        	
+	        	connection.setSize(300, 200);
+	        	connection.setLocationRelativeTo(null);
+	        	connection.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	        	connection.setAlwaysOnTop(true);
+	        	label.setText("Tentative de connection à 192.168.0.103 ... ");
+	        	connection.add(label);
+	        	connection.setVisible(true);
 	            telnet.connect("192.168.0.103", 23);
 	        }
 	        catch (IOException e)
 	        {
-	            e.printStackTrace();
-	            System.exit(1);
+	            label.setText("Erreur de connection, module introuvable");
+	            return false;
 	        }
-
+	        connection.setVisible(false);
+	        connection = null;
+	        return true;
+	    }
+	    
+	    
+	   public void startComm(PrintStream out){
 	        IOUtil.readWrite(telnet.getInputStream(), telnet.getOutputStream(),
-	                         System.in, System.out);
-
+	                         System.in, out);
+	   
 	        try
 	        {
+	        	label.setText("Perte de connection");
+	        	connection.setVisible(true);
 	            telnet.disconnect();
 	        }
 	        catch (IOException e)
@@ -49,9 +74,13 @@ import examples.util.IOUtil;
 	            e.printStackTrace();
 	            System.exit(1);
 	        }
-
-	        System.exit(0);
+	        
+	        //System.exit(0);
 	    }
+	   public void finalize()
+		{
+			telnet = null;
+		}
 	}
 
 
